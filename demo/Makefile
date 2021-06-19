@@ -1,6 +1,6 @@
 .PHONY: fmt
 fmt:
-	go fmt ./...
+	@go fmt ./...
 
 
 .PHONY: test
@@ -9,4 +9,4 @@ test: fmt
 
 .PHONY: run
 run: fmt
-	go run ./main.go
+	@go run ./main.go

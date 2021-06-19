@@ -6,42 +6,22 @@ import (
 )
 
 func main() {
-	type Button struct {
-		Clicked *sync.Cond
+	var count int
+
+	increment := func() {
+		count++
 	}
 
-	button := Button{Clicked: sync.NewCond(new(sync.Mutex))}
+	var once sync.Once
 
-	subscribe := func(c *sync.Cond, fn func()) {
-		var goroutineRunning sync.WaitGroup
-		goroutineRunning.Add(1)
+	var increments sync.WaitGroup
+	increments.Add(100)
+	for i := 0; i < 100; i++ {
 		go func() {
-			goroutineRunning.Done()
-			c.L.Lock()
-			defer c.L.Unlock()
-			c.Wait()
-			fn()
+			defer increments.Done()
+			once.Do(increment)
 		}()
-		goroutineRunning.Wait()
 	}
-
-	var clickRegistered sync.WaitGroup
-	clickRegistered.Add(3)
-
-	subscribe(button.Clicked, func() {
-		fmt.Println("Maximize window.")
-		clickRegistered.Done()
-	})
-	subscribe(button.Clicked, func() {
-		fmt.Println("Displaying annoying dialog box!")
-		clickRegistered.Done()
-	})
-	subscribe(button.Clicked, func() {
-		fmt.Println("Mouse clicked.")
-		clickRegistered.Done()
-	})
-
-	button.Clicked.Broadcast()
-
-	clickRegistered.Wait()
+	increments.Wait()
+	fmt.Printf("count is %d\n", count)
 }
